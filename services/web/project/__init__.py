@@ -7,9 +7,7 @@ from flask import (
     request,
 )
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-
 
 app = Flask(__name__)
 app.config.from_object("project.config.Config")
@@ -42,6 +40,7 @@ def upload_file():
     if request.method == "POST":
         file = request.files["file"]
         filename = secure_filename(file.filename)
+        print(f'app.config["MEDIA_FOLDER"] = {app.config["MEDIA_FOLDER"]}', flush=True)
         file.save(os.path.join(app.config["MEDIA_FOLDER"], filename))
     return """
     <!doctype html>
@@ -50,4 +49,3 @@ def upload_file():
       <p><input type=file name=file><input type=submit value=Upload>
     </form>
     """
-
