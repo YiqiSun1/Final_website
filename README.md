@@ -11,7 +11,7 @@ This is a tutorial project https://testdriven.io/blog/dockerizing-flask-with-pos
 
 ## implementation steps
 1. fork this repo and cd into it. 
-2. follow the tutorial and create the .env.dev file
+2. follow the tutorial and create the .env.prod and .env.prod.db file
 3. run 
 ```
 docker-compose -f docker-compose.prod.yml up -d --build
