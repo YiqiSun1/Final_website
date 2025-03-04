@@ -24,8 +24,11 @@ to bring out the container with docker images, environment variables specified i
 docker-compose -f docker-compose.prod.yml exec web python manage.py create_db
 ``` 
 to initialize postgres database 
+
 5. perform appropraite port forwarding into port 1064
+
 6. You should be able to upload the image through (http://localhost:8080/upload)
+
 7. You should be able to view your image through (http://localhost:1337/media/IMAGE_FILE_NAME)
 
 
