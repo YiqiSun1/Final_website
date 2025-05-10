@@ -20,7 +20,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=pass
       - PGUSER=postgres
-    port: 
+    ports: 
       - "10647:5432" 
 
 volumes:

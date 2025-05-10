@@ -12,8 +12,8 @@ jobs:
     - name: docker
       run: |
         # load the pagila data
-        #git submodule init
-        #git submodule update
+        git submodule init
+        git submodule update
 
         # run the database in docker container
         docker compose up -d --build
@@ -21,10 +21,13 @@ jobs:
         # verify that it is running successfully
         # this is an idempotent command useful for debugging
         docker ps -a
-
-        # load data
-        sh ../../../load_tweets_parallel.sh  
-
+        # load test data 
+        echo '================================================================================'
+        echo 'load pg_normalized'
+        echo '================================================================================'
+        time echo "$files" | parallel ./load_normalized.sh
+        # run test cases
+        
         # after the database starts successfully,
         # it needs time to load the pagila data;
         # this should happen in <1 second,
@@ -34,7 +37,7 @@ jobs:
         sleep 20
 
         # run the tests
-        # docker compose exec -T pg ./run_tests.sh
+        docker compose exec -T pg ./run_tests.sh
 
         # FIXME:
         # the docker-compose command above will generate an error when the github action is run
