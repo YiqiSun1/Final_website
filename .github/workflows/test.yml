@@ -27,6 +27,8 @@ jobs:
         # verify that it is running successfully
         # this is an idempotent command useful for debugging
         docker ps -a
+
+        sleep 20
         # load test data 
         ./load_tweets_parallel.sh
         # run test cases
@@ -37,8 +39,7 @@ jobs:
         # but we sleep for a long time just to be sure that everything is loaded;
         # this is a bit hacky,
         # and a proper check would be to have an infinite loop that terminates once the data has been loaded
-        #sleep 20
-
+        
         # run the tests
         #docker compose exec -T pg ./run_tests.sh
 
