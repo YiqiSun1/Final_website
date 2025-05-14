@@ -29,9 +29,12 @@ jobs:
         echo "first docker" 
         docker ps -a
 
+
         sleep 20
+      
         echo "second docker" 
         docker ps
+        docker compose logs
         # load test data 
         ./load_tweets_parallel.sh
         # run test cases
