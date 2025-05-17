@@ -15,9 +15,7 @@ jobs:
 
     - name: docker
       run: |
-        # load the pagila data
-        #git submodule init
-        #git submodule update
+       
         # Installing requirements
         pip3 install -r requirements.txt
 
@@ -35,8 +33,12 @@ jobs:
         echo "second docker" 
         docker ps
         docker compose logs
+
+        echo "web logs"
+        docker compose logs web
+       
         # load test data 
-        ./load_tweets_parallel.sh
+        # ./load_tweets_parallel.sh
         # run test cases
         
         # after the database starts successfully,
