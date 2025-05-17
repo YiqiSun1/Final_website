@@ -38,7 +38,7 @@ jobs:
         docker compose logs web
        
         # load test data 
-        # ./load_tweets_parallel.sh
+        ./load_tweets_parallel.sh
         # run test cases
         
         # after the database starts successfully,

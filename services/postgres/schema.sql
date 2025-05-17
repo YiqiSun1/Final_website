@@ -1,5 +1,7 @@
 CREATE EXTENSION postgis;
 
+--- this is the right schema being loaded
+
 \set ON_ERROR_STOP on
 
 BEGIN;
