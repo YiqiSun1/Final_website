@@ -1,0 +1,16 @@
+<h1>Create a Message</h1>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li style="color: red;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  <textarea name="content" rows="4" cols="50" placeholder="What's on your mind?" required></textarea><br>
+  <input type="submit" value="Post">
+</form>

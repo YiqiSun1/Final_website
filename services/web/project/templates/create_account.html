@@ -1,0 +1,19 @@
+<h1>Create Account</h1>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li style="color: red;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  Username: <input name="username" required><br>
+  Email: <input name="email" required><br>
+  Password: <input name="password1" type="password" required><br>
+  Confirm Password: <input name="password2" type="password" required><br>
+  <input type="submit" value="Create Account">
+</form>

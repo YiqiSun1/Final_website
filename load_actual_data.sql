@@ -1,32 +1,34 @@
--- Enable pgcrypto for password hashing
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- ========================
--- STEP 1: Insert 1,000,000 Users
--- ========================
+-- Insert 1,000,000 users
 INSERT INTO users (username, email, password_hash)
-SELECT 
+SELECT
     'user_' || i,
-    'user_' || i || '@example.com',
-    encode(digest('password' || i, 'sha256'), 'hex')
-FROM generate_series(1, 1000000) AS s(i)
-ON CONFLICT (username) DO NOTHING;
+    'user_' || i || '@sportsmail.com',
+    'hashed_pw_' || i
+FROM generate_series(1, 1000000) AS i;
 
--- ========================
--- STEP 2: Insert 10,000,000 Tweets (random user_id)
--- ========================
-INSERT INTO tweets (content, user_id, created_at)
+-- Create temp tables for sports + sentiments
+CREATE TEMP TABLE sports(word TEXT);
+INSERT INTO sports(word) VALUES 
+('soccer'), ('basketball'), ('tennis'), ('cricket'), ('baseball'),
+('golf'), ('hockey'), ('rugby'), ('F1'), ('MMA'),
+('surfing'), ('skiing'), ('boxing'), ('swimming'), ('cycling');
+
+CREATE TEMP TABLE sentiments(phrase TEXT);
+INSERT INTO sentiments(phrase) VALUES 
+('I love'), ('I hate'), ('I enjoy watching'), ('I never miss'), ('I can’t stand');
+
+-- Insert 10,000,000 tweets
+INSERT INTO tweets (content, user_id)
 SELECT 
-    'Tweet #' || i || ' - ' || md5(random()::text),
-    (SELECT id FROM users ORDER BY random() LIMIT 1),
-    NOW() - (random() * INTERVAL '30 days')
-FROM generate_series(1, 10000000) AS s(i);
+    s.phrase || ' ' || sp.word,
+    FLOOR(RANDOM() * 1000000 + 1)::INT
+FROM generate_series(1, 10000000), sentiments s, sports sp
+LIMIT 10000000;
 
--- ========================
--- STEP 3: Insert 10,000,000 id_urls (random tweet_id)
--- ========================
+-- Randomly assign URLs to 1–5 million tweets
 INSERT INTO id_urls (tweet_id, url)
 SELECT 
-    (SELECT id FROM tweets ORDER BY random() LIMIT 1),
-    'https://example.com/resource/' || i
-FROM generate_series(1, 10000000) AS s(i);
+    id,
+    'https://example.com/sports/' || id
+FROM tweets
+WHERE RANDOM() < 0.3;  -- ~30% get URLs (adjust as needed)

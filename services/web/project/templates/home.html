@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+
+<html>
+<head>
+    <title>Twitter Clone :)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        ul.nav {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        ul.nav li {
+            display: inline;
+        }
+        ul.tweets {
+            list-style-type: none;
+            padding: 0;
+        }
+        .tweet {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .tweet strong {
+            font-weight: bold;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Twitter Clone :)</h1>
+        <ul class="nav">
+            <li><a href="{{ url_for('root') }}">Home</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/create_account">Create Account</a></li>
+            <li><a href="/search">Search</a></li>
+        </ul>
+    </header>
+
+    <h2>Recent Messages</h2>
+
+    <ul class="tweets">
+        {% for tweet in tweets %}
+            <li class="tweet">
+                <strong>{{ tweet.user.username }}</strong> 
+                <small>{{ tweet.created_at }}</small><br>
+                {{ tweet.content }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="pagination">
+        {% if has_prev %}
+            <a href="{{ url_for('root', page=page-1) }}">Previous</a>
+        {% endif %}
+        {% if has_next %}
+            <a href="{{ url_for('root', page=page+1) }}">Next</a>
+        {% endif %}
+    </div>
+</body>
+</html>
