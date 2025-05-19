@@ -40,7 +40,7 @@ jobs:
         # Run insert test
         echo "Running insert test..."
         docker exec -u postgres final_website-db-1 \
-        psql -U postgres -d postgres -f /test-sql/load_tweets.sql
+        psql -U postgres -d postgres -f /load_test_data.sql
 
         # Check exit status
         if [ $? -eq 0 ]; then

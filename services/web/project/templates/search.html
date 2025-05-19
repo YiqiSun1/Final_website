@@ -1,0 +1,35 @@
+<h2>Search Tweets</h2>
+
+<form method="get">
+  <input name="q" value="{{ query }}" placeholder="Search tweets...">
+  <input type="submit" value="Search">
+</form>
+
+{% if suggestions and not results %}
+  <p>Did you mean:
+    {% for word in suggestions %}
+      <a href="{{ url_for('search', q=word) }}">{{ word }}</a>{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+{% endif %}
+
+{% if results %}
+  <ul>
+    {% for tweet, rank, username in results %}
+      <li>
+        <strong>{{ username }}</strong><br>
+	{{ tweet.content | highlight(query) | safe }}<br>
+        <small>{{ tweet.created_at }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div>
+    {% if has_prev %}
+      <a href="{{ url_for('search', q=query, page=page-1) }}">Previous</a>
+    {% endif %}
+    {% if has_next %}
+      <a href="{{ url_for('search', q=query, page=page+1) }}">Next</a>
+    {% endif %}
+  </div>
+{% endif %}

@@ -1,4 +1,5 @@
 import os
+from sqlalchemy import func, text
 from flask import (
     Flask,
     jsonify,
@@ -125,6 +126,69 @@ def create_message():
 
     return render_template("create_message.html")
 
+@app.route('/search')
+def search():
+    query = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+
+    results = []
+    suggestions = []
+    has_next = has_prev = False
+
+    if query:
+        # Prepare ts_query and rank
+        ts_query = func.websearch_to_tsquery('english', query)
+
+        base_query = (
+            db.session.query(Tweet)
+            .filter(text("content_tsv @@ websearch_to_tsquery('english', :q)"))
+            .params(q=query)
+            .add_columns(
+                func.ts_rank_cd(Tweet.content_tsv, ts_query).label('rank')
+            )
+            .join(User)
+            .add_columns(User.username)
+            .order_by(text('rank DESC'))
+        )
+
+        paginated = base_query.limit(per_page).offset((page - 1) * per_page).all()
+        results = paginated
+
+        # Get spell suggestions using pg_trgm
+        suggestion_query = db.session.execute(text("""
+            SELECT word
+            FROM ts_stat('SELECT to_tsvector(''english'', content) FROM tweets')
+            WHERE word % :query
+            ORDER BY similarity(word, :query) DESC
+            LIMIT 5;
+        """), {'query': query}).fetchall()
+
+        suggestions = [row[0] for row in suggestion_query]
+
+        # Check if there’s a next page
+        has_next = len(paginated) == per_page
+        has_prev = page > 1
+
+    return render_template("search.html",
+                           query=query,
+                           results=results,
+                           page=page,
+                           has_next=has_next,
+                           has_prev=has_prev,
+                           suggestions=suggestions)
+
+@app.template_filter('highlight')
+def highlight(text, query):
+    for word in query.split():
+        text = text.replace(word, f"<mark>{word}</mark>")
+    return text
+@app.template_filter('highlight')
+def highlight(text, query):
+    for word in query.lower().split():
+        text = text.replace(word, f"<mark>{word}</mark>")
+        text = text.replace(word.capitalize(), f"<mark>{word.capitalize()}</mark>")
+    return text
 
 class User(db.Model):
     __tablename__ = "users"
@@ -144,6 +208,7 @@ class Tweet(db.Model):
     content = db.Column(db.String(280), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)    
+    
  
  
 # @app.route("/static/<path:filename>")
