@@ -1,0 +1,5 @@
+NOTICE:  extension "pgcrypto" already exists, skipping
+CREATE EXTENSION
+INSERT 0 0
+INSERT 0 10000000
+INSERT 0 10000000

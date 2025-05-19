@@ -1,0 +1,17 @@
+nohup: ignoring input
+data/geoTwitter21-01-01.zip
+data/geoTwitter21-01-02.zip
+data/geoTwitter21-01-03.zip
+data/geoTwitter21-01-04.zip
+data/geoTwitter21-01-05.zip
+data/geoTwitter21-01-06.zip
+data/geoTwitter21-01-07.zip
+data/geoTwitter21-01-08.zip
+data/geoTwitter21-01-09.zip
+data/geoTwitter21-01-10.zip
+================================================================================
+load pg_normalized
+================================================================================
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 1920maxresident)k
+0inputs+0outputs (0major+84minor)pagefaults 0swaps
+2025-05-18 18:41:41.681406 data/geoTwitter21-01-01.zip

@@ -2,14 +2,7 @@
 
 files=$(find data/*)
 
-#echo '================================================================================'
-#echo 'load pg_denormalized'
-#echo '================================================================================'
-## FIXME: implement this with GNU parallel
-#time echo "$files" | parallel ./load_denormalized.sh
-#    #use SQL's COPY command to load data into pg_denormalized
-#
-#
+
 echo '================================================================================'
 echo 'load pg_normalized'
 echo '================================================================================'

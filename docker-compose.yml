@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     build: ./services/web
+    command: python manage.py run -h 0.0.0.0
     volumes:
       - ./services/web/:/usr/src/app/
     ports:
@@ -12,9 +13,8 @@ services:
     depends_on:
       - db
   db:
-    build: services/postgres
+    build: ./services/postgres
     volumes:
-      - ./:/tmp/db
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=postgres
@@ -22,7 +22,7 @@ services:
       - PGUSER=postgres
 
     ports: 
-      - "10647:5432" 
+      - 11666:5432 
 
 volumes:
   postgres_data:
