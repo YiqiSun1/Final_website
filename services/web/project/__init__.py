@@ -14,6 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
+import psycopg2
 
 
 app = Flask(__name__)
@@ -126,58 +127,106 @@ def create_message():
 
     return render_template("create_message.html")
 
-@app.route('/search')
+@app.route("/search")
 def search():
-    query = request.args.get('q', '').strip()
-    page = request.args.get('page', 1, type=int)
-    per_page = 20
+    query = request.args.get("q", "")
+    page = int(request.args.get("page", 1))
+    page_size = 10
+    offset = (page - 1) * page_size
 
     results = []
-    suggestions = []
-    has_next = has_prev = False
+    has_next = False
 
     if query:
-        # Prepare ts_query and rank
-        ts_query = func.websearch_to_tsquery('english', query)
-
-        base_query = (
-            db.session.query(Tweet)
-            .filter(text("content_tsv @@ websearch_to_tsquery('english', :q)"))
-            .params(q=query)
-            .add_columns(
-                func.ts_rank_cd(Tweet.content_tsv, ts_query).label('rank')
-            )
-            .join(User)
-            .add_columns(User.username)
-            .order_by(text('rank DESC'))
+        conn = psycopg2.connect(
+            dbname=os.getenv("DATABASE", "postgres"),
+            user=os.getenv("POSTGRES_USER", "postgres"),
+            password=os.getenv("POSTGRES_PASSWORD", "pass"),
+            host=os.getenv("SQL_HOST", "db"),
+            port=os.getenv("SQL_PORT", "5432")
         )
 
-        paginated = base_query.limit(per_page).offset((page - 1) * per_page).all()
-        results = paginated
+        cur = conn.cursor()
 
-        # Get spell suggestions using pg_trgm
-        suggestion_query = db.session.execute(text("""
-            SELECT word
-            FROM ts_stat('SELECT to_tsvector(''english'', content) FROM tweets')
-            WHERE word % :query
-            ORDER BY similarity(word, :query) DESC
-            LIMIT 5;
-        """), {'query': query}).fetchall()
+        # Perform FTS with RUM index using plainto_tsquery, rank, highlight
+        cur.execute("""
+            SELECT 
+                tweets.id,
+                users.username,
+                ts_headline('english', tweets.content, plainto_tsquery(%s)) AS highlighted,
+                ts_rank_cd(tweets.content_tsv, plainto_tsquery(%s)) AS rank
+            FROM tweets
+            JOIN users ON tweets.user_id = users.id
+            WHERE tweets.content_tsv @@ plainto_tsquery(%s)
+            ORDER BY rank DESC
+            LIMIT %s OFFSET %s
+        """, (query, query, query, page_size + 1, offset))
 
-        suggestions = [row[0] for row in suggestion_query]
+        rows = cur.fetchall()
+        conn.close()
 
-        # Check if there’s a next page
-        has_next = len(paginated) == per_page
-        has_prev = page > 1
+        for row in rows[:page_size]:
+            results.append({
+                "id": row[0],
+                "username": row[1],
+                "highlighted": row[2]
+            })
 
-    return render_template("search.html",
-                           query=query,
-                           results=results,
-                           page=page,
-                           has_next=has_next,
-                           has_prev=has_prev,
-                           suggestions=suggestions)
+        has_next = len(rows) > page_size
 
+    return render_template("search.html", results=results, query=query, page=page, has_next=has_next)
+#@app.route('/search')
+#def search():
+#    query = request.args.get('q', '').strip()
+#    page = request.args.get('page', 1, type=int)
+#    per_page = 20
+#
+#    results = []
+#    suggestions = []
+#    has_next = has_prev = False
+#
+#    if query:
+#        # Prepare ts_query and rank
+#        ts_query = func.websearch_to_tsquery('english', query)
+#
+#        base_query = (
+#            db.session.query(Tweet)
+#            .filter(text("content_tsv @@ websearch_to_tsquery('english', :q)"))
+#            .params(q=query)
+#            .add_columns(
+#                func.ts_rank_cd(Tweet.content_tsv, ts_query).label('rank')
+#            )
+#            .join(User)
+#            .add_columns(User.username)
+#            .order_by(text('rank DESC'))
+#        )
+#
+#        paginated = base_query.limit(per_page).offset((page - 1) * per_page).all()
+#        results = paginated
+#
+#        # Get spell suggestions using pg_trgm
+#        suggestion_query = db.session.execute(text("""
+#            SELECT word
+#            FROM ts_stat('SELECT to_tsvector(''english'', content) FROM tweets')
+#            WHERE word % :query
+#            ORDER BY similarity(word, :query) DESC
+#            LIMIT 5;
+#        """), {'query': query}).fetchall()
+#
+#        suggestions = [row[0] for row in suggestion_query]
+#
+#        # Check if there’s a next page
+#        has_next = len(paginated) == per_page
+#        has_prev = page > 1
+#
+#    return render_template("search.html",
+#                           query=query,
+#                           results=results,
+#                           page=page,
+#                           has_next=has_next,
+#                           has_prev=has_prev,
+#                           suggestions=suggestions)
+#
 @app.template_filter('highlight')
 def highlight(text, query):
     for word in query.split():

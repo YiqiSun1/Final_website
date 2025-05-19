@@ -5,7 +5,7 @@ services:
     build:
       context: ./services/web
       dockerfile: Dockerfile.prod
-    command: gunicorn --bind 0.0.0.0:5000 manage:app
+    command: python manage.py run -h 0.0.0.0 
     volumes:
       - static_volume:/home/app/web/project/static
       - media_volume:/home/app/web/project/media
@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
   db:
-    build: services/postgres
+    build: ./services/postgres
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data/
     env_file:
